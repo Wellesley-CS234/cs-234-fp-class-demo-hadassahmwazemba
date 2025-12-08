@@ -24,8 +24,38 @@ except FileNotFoundError:
         st.stop()
 
 st.title("Engagement with Africa-Related Articles on the English Wikipedia")
+st.write('By Hadassah Mwazemba')
 
-#st.dataframe(df.head())
+st.write("This analysis examines the interaction of users on the English Wikipedia with African-Related articles. "
+         "The data used is from the 2023-2024 Wikipedia DPDP dataset. "
+         "The analysis examines articles that had more than 1000 views per day from the mentioned dataset.")
+
+st.divider()
+
+st.subheader("Research Question")
+st.write("What is the engagement of African-related Wikipedia articles in the English Wikipedia outside of Africa?")
+
+st.subheader("Hypothesis")
+st.write("My hypothesis is that American and European countries have the highest \
+         engagement with these articles in terms of pageviews")
+
+st.divider()
+
+st.header("Data Used For The Analysis")
+st.write("This dataset was produced by getting Articles from Wikiproject:Africa and extracting their corresponding QIDs. \
+         These QIDs were then used to extract the variables needed for this analysis from the DPDP set. \
+         A preview of the dataset is provided below ")
+
+
+is_toggle = st.toggle("View data snippet (first 50 rows) ")
+
+if is_toggle:
+
+    df = df.drop(columns=["Unnamed: 0", "Unnamed: 0.1"], errors="ignore")
+
+    st.dataframe(df.head(50))
+
+st.divider()
 
 ########
 # Visualization to  see the number of page views per Region
@@ -35,15 +65,11 @@ st.title("Engagement with Africa-Related Articles on the English Wikipedia")
 
 df['year'] = df['date'].apply(lambda x: x.split('-')[0])
 
-st.write("## A sample of what the data looks like")
-st.dataframe(df.head())
 
 ###########
 ## Group into regions by country
 #######
 filtered_df = df.groupby(['region', 'year'])['views'].sum().reset_index()
-
-#st.dataframe(filtered_df)
 
 ###########
 ## Normalize the data per capita
@@ -57,8 +83,6 @@ population_df = unique_countries.groupby(['region','year'])['population'].sum().
 
 merged_df = filtered_df.merge(population_df, how='right')
 
-st.dataframe(merged_df)
-
 #calculate the pageviews per capita (1000)
 merged_df['views_per_capita']  = merged_df['views'] / df['population'] * 1000000
 
@@ -67,14 +91,13 @@ merged_df["views_zscore"] = (
     merged_df["views_per_capita"] - merged_df["views_per_capita"].mean()
 ) / merged_df["views_per_capita"].std()
 
-st.dataframe(merged_df)
 
 
 ###########
 ## Visualization
 ##########
 
-st.header("Analysis of Pageviews Per Capita Per Year")
+st.header("Analysis of Pageviews Per Capita")
 
 year = st.selectbox('Choose a year:', ['2023','2024'])
 
@@ -87,7 +110,7 @@ regions_df = year_df[year_df['region'].isin(regions)]
 
 regions_df = regions_df.sort_values(by="views_per_capita", ascending=False)
 
-st.dataframe(regions_df)
+#st.dataframe(regions_df)
 
 
 #Plot the barplot
@@ -101,8 +124,13 @@ fig = px.bar(regions_df,
 
 fig.update_layout(
         xaxis_title="Region",
-        yaxis_title="Pageviews per capita",
+        yaxis_title="Pageviews per capita (1M)",
     )
 
 st.plotly_chart(fig, use_container_width=True)
+
+
+##############
+## Hypothesis Testing
+##############
 
