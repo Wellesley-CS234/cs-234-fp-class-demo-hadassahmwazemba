@@ -130,7 +130,49 @@ fig.update_layout(
 st.plotly_chart(fig, use_container_width=True)
 
 
-##############
-## Hypothesis Testing
-##############
+
+
+########
+# Visualization to  see the number of page views per Country
+########
+
+#getting the year of the dates
+
+df['year'] = df['date'].apply(lambda x: x.split('-')[0])
+
+
+###########
+## Group into regions by country
+#######
+filtered_df = df.groupby(['country', 'year'])['views'].sum().reset_index()
+
+#dropping duplicates (NB : will fix cause some of the countries are not in 2024)
+unique_countries = df.drop_duplicates(subset=['country', 'year'])
+
+#getting the total populations first
+# st.dataframe(unique_countries)
+
+st.divider()
+st.header("Most Viewed Articles Per Country")
+
+year_select = st.selectbox('Choose a year:', ['2023','2024'], key='year_for_top25')
+
+if year_select:
+    df_year = df[df['year'] == year_select]
+
+    country = st.selectbox('Choose a country', sorted(df_year['country'].dropna().unique()), key='country_for_top25')
+
+    country_df = df_year[df_year['country'] == country]
+
+    grouped = (
+    country_df.groupby('article', as_index=False)['views'].sum()
+    )
+
+    # sorting
+    top25 = grouped.sort_values('views', ascending=False).head(25)
+
+    st.write(f"Most Viewed Articles in {country} for {year_select}")
+    st.dataframe(top25[['article', 'views']])
+
+
 
